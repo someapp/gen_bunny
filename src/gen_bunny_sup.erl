@@ -21,6 +21,7 @@
 %% THE SOFTWARE.
 
 %% @doc Supervisor for the gen_bunny application.
+%% @private
 -module(gen_bunny_sup).
 -author('David Reid <dreid@dreid.org>').
 

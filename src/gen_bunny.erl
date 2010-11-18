@@ -52,6 +52,7 @@
          ack/1,
          stop/1]).
 
+%% @private
 behaviour_info(callbacks) ->
     [{init, 1},
      {handle_message, 2},
@@ -81,7 +82,7 @@ call(Name, Request, Timeout) ->
 cast(Dest, Request) ->
     gen_server:cast(Dest, Request).
 
-
+%% @private
 init([Module, ConnectionInfo, DeclareInfo, InitArgs0]) ->
     {NoAck, InitArgs1} = get_opt(no_ack, InitArgs0, true),
     {ConnectFun, InitArgs2} = get_opt(connect_fun, InitArgs1,
@@ -135,6 +136,7 @@ ack({Channel, Tag}) ->
             ok
     end.
 
+%% @private
 handle_call(get_connection, _From,
             State=#gen_bunny_state{connection=Connection}) ->
     {reply, Connection, State};
@@ -162,6 +164,7 @@ handle_call(Request, From,
             {stop, Reason, Reply, State#gen_bunny_state{modstate=NewModState}}
   end.
 
+%% @private
 handle_cast(stop, State) ->
     {stop, normal, State};
 handle_cast(Msg, State=#gen_bunny_state{mod=Module, modstate=ModState}) ->
@@ -174,6 +177,7 @@ handle_cast(Msg, State=#gen_bunny_state{mod=Module, modstate=ModState}) ->
             {stop, Reason, State#gen_bunny_state{modstate=NewModState}}
     end.
 
+%% @private
 handle_info({Envelope=#'basic.deliver'{}, Message0},
             State=#gen_bunny_state{no_ack=NoAck,
                                    mod=Module, modstate=ModState,
@@ -218,6 +222,7 @@ handle_info(Info, State=#gen_bunny_state{mod=Module, modstate=ModState}) ->
             {stop, Reason, State#gen_bunny_state{modstate=NewModState}}
     end.
 
+%% @private
 terminate(Reason,
           #gen_bunny_state{channel=Channel, consumer_tag=CTag,
                            connection=Connection,
@@ -231,6 +236,7 @@ terminate(Reason,
     ok = amqp_connection:close(Connection),
     ok.
 
+%% @private
 code_change(_OldVersion, State, _Extra) ->
     %% TODO:  support code changes?
     {ok, State}.

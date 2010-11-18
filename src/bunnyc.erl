@@ -84,6 +84,7 @@ stop(Name) ->
 %% Callbacks
 %%
 
+%% @private
 init([ConnectionInfo, DeclareInfo, Args]) ->
     ConnectFun = proplists:get_value(connect_fun, Args,
                                      fun gen_bunny_mon:connect/1),
@@ -99,7 +100,7 @@ init([ConnectionInfo, DeclareInfo, Args]) ->
                 exchange=Exchange,
                 queue=Queue}}.
 
-
+%% @private
 handle_call({publish, Key, Message, Opts}, _From,
             State = #bunnyc_state{channel=Channel, exchange=Exchange})
   when is_binary(Key), is_binary(Message) orelse ?is_message(Message),
@@ -119,6 +120,7 @@ handle_call(stop, _From,
     amqp_connection:close(Connection),
     {stop, normal, ok, State}.
 
+%% @private
 handle_cast({publish, Key, Message, Opts},
             State = #bunnyc_state{channel=Channel, exchange=Exchange})
   when is_binary(Key), is_binary(Message) orelse ?is_message(Message),
@@ -134,17 +136,18 @@ handle_cast({ack, Tag}, State = #bunnyc_state{channel=Channel}) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-
+%% @private
 handle_info({reconnected, {ConnectionPid, ChannelPid}}, State) ->
     {noreply, State#bunnyc_state{connection=ConnectionPid, channel=ChannelPid}};
 
 handle_info(_Info, State) ->
     {noreply, State}.
 
-
+%% @private
 terminate(_Reason, _State) ->
     ok.
 
+%% @private
 code_change(_OldVersion, State, _Extra) ->
     {ok, State}.
 
