@@ -1,5 +1,7 @@
 REBAR:=./rebar
 
+.PHONY: all erl test clean doc
+
 all: erl
 
 erl:
@@ -11,5 +13,7 @@ test: all
 
 clean:
 	$(REBAR) clean
-	-rm -rvf deps ebin
+	-rm -rvf deps ebin doc .eunit
 
+doc:
+	$(REBAR) doc
