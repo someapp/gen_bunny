@@ -33,7 +33,7 @@
 -compile(export_all).
 -endif.
 
--export([start_link/4]).
+-export([start_link/5]).
 -export([init/1,
          handle_call/3,
          handle_cast/2,
@@ -63,15 +63,12 @@ behaviour_info(callbacks) ->
 behaviour_info(_) ->
     undefined.
 
-start_link(Module, ConnectionInfo, DeclareInfo, InitArgs)
+start_link(Name, Module, ConnectionInfo, DeclareInfo, InitArgs)
   when is_atom(ConnectionInfo) orelse is_tuple(ConnectionInfo),
        is_binary(DeclareInfo) orelse is_tuple(DeclareInfo),
        is_list(InitArgs) ->
     application:start(gen_bunny),
-    gen_server:start_link(
-      ?MODULE,
-      [Module, ConnectionInfo, DeclareInfo, InitArgs],
-      []).
+    gen_server:start_link({local,Name}, ?MODULE, [Module, ConnectionInfo, DeclareInfo, InitArgs],[]).
 
 call(Name, Request) ->
     gen_server:call(Name, Request).
@@ -94,6 +91,7 @@ init([Module, ConnectionInfo, DeclareInfo, InitArgs0]) ->
         {ok, ModState} ->
             case catch ConnectFun(ConnectionInfo) of
                 {ok, {ConnectionPid, ChannelPid}} ->
+                    lager:info("init/ ~p fun ~p",[ DeclareInfo ]),
                     {ok, QueueName} = declare_subscribe(
                                         ChannelPid, DeclareFun,
                                         DeclareInfo, NoAck),
@@ -245,6 +243,7 @@ code_change(_OldVersion, State, _Extra) ->
 %% TODO: better error handling here.
 declare_subscribe(ChannelPid, DeclareFun, DeclareInfo, NoAck) ->
     {ok, {_Exchange, Queue}} = DeclareFun(ChannelPid, DeclareInfo),
+    lager:info("declare_subscribe/ Exchange: ~p & Queue: ~p",[ _Exchange, Queue ]),
     QueueName = bunny_util:get_name(Queue),
     amqp_channel:subscribe(ChannelPid,
                            #'basic.consume'{queue=QueueName,
