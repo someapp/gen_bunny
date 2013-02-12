@@ -129,6 +129,7 @@ new_exchange(Name) ->
 new_exchange(Exchange, Type) when ?is_exchange(Exchange), is_binary(Type) ->
     Exchange#'exchange.declare'{type=Type};
 new_exchange(Name, Type) when is_binary(Name), is_binary(Type) ->
+    lager:info("new_exchange/ ~p",[ Name ]),
     #'exchange.declare'{exchange=Name, type=Type}.
 
 %% XXX maybe call these  [get|set]_exchange_type() ?
@@ -157,6 +158,7 @@ set_type(Exchange, Type) when ?is_exchange(Exchange), is_binary(Type) ->
 new_queue(Queue) when ?is_queue(Queue) ->
     Queue;
 new_queue(Name) when is_binary(Name) ->
+    lager:info("new_queue/ ~p",[ Name ]),
     #'queue.declare'{queue=Name}.
 
 
@@ -216,14 +218,17 @@ declare(Channel, {Exchange}) ->
 
 declare(Channel, {Exchange, Queue, RoutingKey})
   when is_binary(RoutingKey) ->
+      lager:info("declare/ X: ~p Q: ~p R: ~p ",[Exchange, Queue, RoutingKey ]),
     {ok, Exchange1} = declare_exchange(Channel, Exchange),
     {ok, Queue1} = declare_queue(Channel, Queue),
     ok = bind_queue(Channel, Exchange, Queue, RoutingKey),
 
+    lager:info("declare result X: ~p Q: ~p ",[Exchange1, Queue1 ]),
     {ok, {Exchange1, Queue1}}.
 
 
 declare_exchange(Channel, Exchange) ->
+    lager:info("declare_exchange/ ~p",[ Exchange ]),
     Exchange1 = new_exchange(Exchange),
     #'exchange.declare_ok'{} = amqp_channel:call(
                                  Channel,
@@ -232,6 +237,7 @@ declare_exchange(Channel, Exchange) ->
 
 
 declare_queue(Channel, Queue) ->
+    lager:info("declare_queue/ ~p",[ Queue ]),
     Queue1 = new_queue(Queue),
     #'queue.declare_ok'{} = amqp_channel:call(
                                  Channel,
